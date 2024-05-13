@@ -38,12 +38,6 @@ async function run() {
 
 
 
-        // app.get('/post', async (req, res) => {
-        //     const cursor = postCollection.find().sort({ deadline:1 })
-        //     const result = await cursor.toArray()
-        //     res.send(result)
-        // })
-        
         app.get('/post', async (req, res) => {
             let query = {}
             if (req.query?.organizer_email) {
@@ -68,6 +62,15 @@ async function run() {
             const result = await postCollection.insertOne(newPost);
             res.send(result);
         })
+        app.delete('/post/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const query = { _id: new ObjectId(id) }
+            const result = await postCollection.deleteOne(query)
+            res.send(result)
+        })
+
+
         app.post('/request', async (req, res) => {
             const newRequest = req.body;
             console.log(newRequest);
