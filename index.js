@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.json())
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.gnbvncz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -27,25 +27,51 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const showCollection = client.db('volunteer-need').collection('show')
+        // for just one data collection show
+        // const showCollection = client.db('volunteer-need').collection('show')
+
+        // for every data collection - all the volunteering post is here 
         const postCollection = client.db('volunteer-need').collection('post')
 
-        app.get('/show', async (req, res) => {
-            const cursor = showCollection.find().sort({ deadline: 1 })
+        // my own volunteering request 
+        const requestCollection = client.db('volunteer-need').collection('request')
+
+
+
+        // app.get('/post', async (req, res) => {
+        //     const cursor = postCollection.find().sort({ deadline:1 })
+        //     const result = await cursor.toArray()
+        //     res.send(result)
+        // })
+        
+        app.get('/post', async (req, res) => {
+            let query = {}
+            if (req.query?.organizer_email) {
+                query = { organizer_email: req.query.organizer_email }
+            }
+            const cursor = postCollection.find(query).sort({ deadline: 1 })
             const result = await cursor.toArray()
             res.send(result)
         })
 
-        app.get('/post', async (req, res) => {
-            const cursor = postCollection.find()
-            const result = await cursor.toArray()
-            res.send(result)
+
+        app.get('/post/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await postCollection.findOne(query);
+            res.send(result);
         })
 
         app.post('/post', async (req, res) => {
             const newPost = req.body;
             console.log(newPost);
             const result = await postCollection.insertOne(newPost);
+            res.send(result);
+        })
+        app.post('/request', async (req, res) => {
+            const newRequest = req.body;
+            console.log(newRequest);
+            const result = await requestCollection.insertOne(newRequest);
             res.send(result);
         })
 
