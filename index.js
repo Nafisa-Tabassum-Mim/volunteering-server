@@ -27,8 +27,6 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        // for just one data collection show
-        // const showCollection = client.db('volunteer-need').collection('show')
 
         // for every data collection - all the volunteering post is here 
         const postCollection = client.db('volunteer-need').collection('post')
@@ -77,6 +75,37 @@ async function run() {
             const result = await requestCollection.insertOne(newRequest);
             res.send(result);
         })
+
+        
+        app.get('/request', async (req, res) => {
+            const result = await requestCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.put('/post/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedPost = req.body;
+            console.log(updatedPost)
+            const post = {
+                $set: {
+                    thumbnail: updatedPost.thumbnail,
+                    post_title: updatedPost.post_title,
+                    description: updatedPost.description,
+                    category: updatedPost.category,
+                    location: updatedPost.location,
+                    volunteers_needed: updatedPost.volunteers_needed,
+                    deadline: updatedPost.deadline,
+                    organizer_name: updatedPost.organizer_name,
+                    organizer_email: updatedPost.organizer_email,
+                }
+            }
+
+            const result = await postCollection.updateOne(filter, post, options);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
