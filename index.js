@@ -56,30 +56,43 @@ async function run() {
 
         app.post('/post', async (req, res) => {
             const newPost = req.body;
-            console.log(newPost);
+            // console.log(newPost);
             const result = await postCollection.insertOne(newPost);
             res.send(result);
         })
         app.delete('/post/:id', async (req, res) => {
             const id = req.params.id
-            console.log(id)
+            // console.log(id)
             const query = { _id: new ObjectId(id) }
             const result = await postCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        app.delete('/request/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const query = { _id: new ObjectId(id) }
+            const result = await requestCollection.deleteOne(query)
             res.send(result)
         })
 
 
         app.post('/request', async (req, res) => {
             const newRequest = req.body;
-            console.log(newRequest);
+            // console.log(newRequest);
             const result = await requestCollection.insertOne(newRequest);
             res.send(result);
         })
 
         
         app.get('/request', async (req, res) => {
-            const result = await requestCollection.find().toArray();
-            res.send(result);
+            let query = {}
+            if (req.query?.volunteer_email) {
+                query = { volunteer_email: req.query.volunteer_email }
+            }
+            const cursor = requestCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result)
         })
 
         app.put('/post/:id', async (req, res) => {
@@ -87,7 +100,7 @@ async function run() {
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const updatedPost = req.body;
-            console.log(updatedPost)
+            // console.log(updatedPost)
             const post = {
                 $set: {
                     thumbnail: updatedPost.thumbnail,
